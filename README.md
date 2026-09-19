@@ -33,10 +33,10 @@ Whether you are clutching in **Rivals**, dominating in **Arsenal**, or grinding 
 
 | Platform | Package | Size | Description |
 | :--- | :--- | :--- | :--- |
-| **Windows 10/11 (64-bit)** | [`ClutchBlox_1.4.0_x64-setup.exe`](releases/) | **1.9 MB** | Standard Windows installer with auto-updates |
-| **Windows 10/11 (Portable)** | [`clutchblox.exe`](releases/) | **8.4 MB** | Single standalone executable (no install required) |
-| **Windows Enterprise** | [`ClutchBlox_1.4.0_x64_en-US.msi`](releases/) | **2.8 MB** | MSI enterprise & silent deployment installer |
-| **Android Tablets & Phones** | [`ClutchBlox_1.4.0_Android_arm64.apk`](releases/) | **107 MB** | Native Android package with overlay service |
+| **Windows 10/11 (64-bit)** | [**`ClutchBlox_1.4.0_x64-setup.exe`**](https://github.com/ClutchGameDev/ClutchBlox/releases/latest/download/ClutchBlox_1.4.0_x64-setup.exe) | **1.9 MB** | Standard Windows installer with auto-updates |
+| **Windows 10/11 (Portable)** | [**`clutchblox.exe`**](https://github.com/ClutchGameDev/ClutchBlox/releases/latest/download/clutchblox.exe) | **8.4 MB** | Single standalone executable (no install required) |
+| **Windows Enterprise** | [**`ClutchBlox_1.4.0_x64_en-US.msi`**](https://github.com/ClutchGameDev/ClutchBlox/releases/latest/download/ClutchBlox_1.4.0_x64_en-US.msi) | **2.8 MB** | MSI enterprise & silent deployment installer |
+| **Android Tablets & Phones** | [**`ClutchBlox_1.4.0_Android_arm64.apk`**](https://github.com/ClutchGameDev/ClutchBlox/releases/latest/download/ClutchBlox_1.4.0_Android_arm64.apk) | **134 MB** | Native Android package with overlay service |
 | **Any Device (PWA)** | Web App via Chrome / Safari | **Instant** | Add to Home Screen directly from your browser |
 
 ---
@@ -86,12 +86,12 @@ ClutchBlox is strictly built to comply with Roblox anti-cheat systems (including
 ## 🚀 Quick-Start Guide
 
 ### Windows PC:
-1. Download and run [`ClutchBlox_1.4.0_x64-setup.exe`](releases/).
+1. Download and run [**`ClutchBlox_1.4.0_x64-setup.exe`**](https://github.com/ClutchGameDev/ClutchBlox/releases/latest/download/ClutchBlox_1.4.0_x64-setup.exe).
 2. Select **Competitive Gaming Pro** (or customize your crosshair, sound, and font under **Step 2**).
 3. Click **LAUNCH ROBLOX & ACTIVATE BOOSTS**.
 
 ### Android Tablet:
-1. Download [`ClutchBlox_1.4.0_Android_arm64.apk`](releases/) onto your tablet.
+1. Download [**`ClutchBlox_1.4.0_Android_arm64.apk`**](https://github.com/ClutchGameDev/ClutchBlox/releases/latest/download/ClutchBlox_1.4.0_Android_arm64.apk) onto your tablet.
 2. Tap the downloaded file to install (allow unknown apps if prompted).
 3. Open ClutchBlox, switch to **[ 📱 Android ]** in the header, and tap **START OVERLAY & PLAY ROBLOX**.
 
