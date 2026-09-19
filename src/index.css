@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-root: #ff4b33;
+  }
+
+  body {
+    background-color: #120e0d;
+    color: #f7f4f3;
+    min-height: 100vh;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Butter-Smooth 3D Horizontal Spin Flip Animation */
+@keyframes flipInY {
+  0% {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-80deg) translateZ(-50px) scale(0.92);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0deg) translateZ(0) scale(1);
+  }
+}
+
+.animate-flip-y {
+  animation: flipInY 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Hardware-Accelerated 3D Card Physics */
+.card-3d {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform, box-shadow;
+  transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1),
+              box-shadow 0.24s cubic-bezier(0.2, 0.9, 0.3, 1),
+              border-color 0.2s ease;
+}
+
+.card-3d:hover {
+  transform: translate3d(0, -6px, 0);
+}
+
+.card-3d:active {
+  transform: translate3d(0, -1px, 0);
+  transition-duration: 0.08s;
+}
+
+/* Tactile 3D Button Physics */
+.btn-3d {
+  transform: translate3d(0, 0, 0);
+  will-change: transform, box-shadow;
+  transition: transform 0.15s cubic-bezier(0.2, 0.9, 0.3, 1),
+              background-color 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.btn-3d:hover {
+  transform: translate3d(0, -1.5px, 0);
+}
+
+.btn-3d:active {
+  transform: translate3d(0, 1.5px, 0);
+  transition-duration: 0.06s;
+}
+
+/* Hide scrollbar utility while preserving scrollability */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Simple clean scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1413;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #382c2a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff4b33;
+}
+
