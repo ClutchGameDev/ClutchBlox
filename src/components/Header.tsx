@@ -6,9 +6,17 @@ interface HeaderProps {
   detection: RobloxDetection;
   platformMode?: "windows" | "android";
   onTogglePlatform?: (mode: "windows" | "android") => void;
+  androidHasPermission?: boolean;
+  onRequestOverlayPermission?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ detection, platformMode = "windows", onTogglePlatform }) => {
+export const Header: React.FC<HeaderProps> = ({
+  detection,
+  platformMode = "windows",
+  onTogglePlatform,
+  androidHasPermission = true,
+  onRequestOverlayPermission,
+}) => {
   return (
     <header className="flex items-center justify-between border-b border-surface-800/80 pb-4">
       <div className="flex items-center gap-3">
@@ -24,11 +32,13 @@ export const Header: React.FC<HeaderProps> = ({ detection, platformMode = "windo
               v1.4.0
             </span>
             <span className="text-[9px] font-bold text-neutral-400 bg-surface-850 px-1.5 py-0.5 rounded uppercase tracking-wider font-heading">
-              Competitive Client
+              {platformMode === "android" ? "Android Esports" : "Competitive Client"}
             </span>
           </div>
           <p className="text-xs text-neutral-400 mt-0.5 font-body">
-            Pick a mode below, then click Play Roblox.
+            {platformMode === "android"
+              ? "Hardware Crosshair Overlay & 120Hz Touch Boost for Roblox Mobile."
+              : "Pick a mode below, then click Play Roblox."}
           </p>
         </div>
       </div>
@@ -63,10 +73,22 @@ export const Header: React.FC<HeaderProps> = ({ detection, platformMode = "windo
         )}
 
         {platformMode === "android" ? (
-          <span className="text-xs text-brand-400 flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 shadow-sm font-body">
-            <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
-            Mobile Ready
-          </span>
+          !androidHasPermission && onRequestOverlayPermission ? (
+            <button
+              type="button"
+              onClick={onRequestOverlayPermission}
+              className="text-xs text-amber-300 hover:text-white flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 shadow-sm font-body cursor-pointer transition-colors"
+              title="Click to grant overlay permission"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              Grant Overlay
+            </button>
+          ) : (
+            <span className="text-xs text-emerald-400 flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 shadow-sm font-body">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Mobile Ready
+            </span>
+          )
         ) : (
           <>
             {detection.status === "detecting" && (

@@ -104,7 +104,9 @@ class ClutchOverlayService : Service() {
     private fun setupCrosshairOverlay() {
         if (!Settings.canDrawOverlays(this)) return
 
-        crosshairView?.let { windowManager.removeView(it) }
+        try {
+            crosshairView?.let { windowManager.removeView(it) }
+        } catch (e: Exception) {}
 
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -207,7 +209,11 @@ class ClutchOverlayService : Service() {
             }
         }
 
-        windowManager.addView(crosshairView, params)
+        try {
+            windowManager.addView(crosshairView, params)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -217,7 +223,9 @@ class ClutchOverlayService : Service() {
     private fun setupRadarHudOverlay() {
         if (!Settings.canDrawOverlays(this)) return
 
-        radarHudView?.let { windowManager.removeView(it) }
+        try {
+            radarHudView?.let { windowManager.removeView(it) }
+        } catch (e: Exception) {}
 
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -230,7 +238,9 @@ class ClutchOverlayService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             layoutType,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -255,12 +265,20 @@ class ClutchOverlayService : Service() {
         hudLayout.addView(pingText)
         radarHudView = hudLayout
 
-        windowManager.addView(radarHudView, params)
+        try {
+            windowManager.addView(radarHudView, params)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        crosshairView?.let { windowManager.removeView(it) }
-        radarHudView?.let { windowManager.removeView(it) }
+        try {
+            crosshairView?.let { windowManager.removeView(it) }
+        } catch (e: Exception) {}
+        try {
+            radarHudView?.let { windowManager.removeView(it) }
+        } catch (e: Exception) {}
     }
 }

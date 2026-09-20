@@ -14,8 +14,11 @@ import { Footer } from "./components/Footer";
 
 export default function App() {
   const [platformMode, setPlatformMode] = useState<"windows" | "android">(() => {
+    if (typeof window !== "undefined" && (window as any).ClutchAndroid) {
+      return "android";
+    }
     if (typeof navigator !== "undefined") {
-      if (/android|iphone|ipad|ipod/i.test(navigator.userAgent) || window.innerWidth < 640) {
+      if (/android|iphone|ipad|ipod|clutchblox/i.test(navigator.userAgent)) {
         return "android";
       }
     }
@@ -62,6 +65,7 @@ export default function App() {
     statusText: "Ready",
   });
 
+  // Initial environment detection & telemetry listener
   useEffect(() => {
     const detectEnvironment = async () => {
       // 1. Check if native Android bridge is attached
@@ -74,7 +78,13 @@ export default function App() {
         return;
       }
 
-      // 2. Check if Tauri reports mobile platform
+      // 2. Check user agent
+      if (typeof navigator !== "undefined" && /android|iphone|ipad|ipod|clutchblox/i.test(navigator.userAgent)) {
+        setPlatformMode("android");
+        return;
+      }
+
+      // 3. Check if Tauri reports mobile platform
       try {
         const isMobile = await invoke<boolean>("is_mobile_platform");
         if (isMobile) {
@@ -82,17 +92,9 @@ export default function App() {
           return;
         }
       } catch {}
-
-      // 3. Check browser user agent or small viewport
-      if (typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
-        setPlatformMode("android");
-      }
     };
 
     detectEnvironment();
-    checkRobloxInstallation();
-    invoke("apply_skybox", { presetName: "Competitive_Pro" }).catch(() => {});
-    invoke("apply_pro_gear", { gear: { crosshair: "green_dot", sound: "classic_oof", font: "old_roblox" } }).catch(() => {});
 
     // Listen for live telemetry from ClutchBlox Rust backend
     const unlistenPromise = listen<EsportsHudState>("clutch_hud_update", (event) => {
@@ -105,6 +107,23 @@ export default function App() {
       unlistenPromise.then((unlisten) => unlisten()).catch(() => {});
     };
   }, []);
+
+  // Platform mode reactions: Windows file scanner vs Android permission check
+  useEffect(() => {
+    if (platformMode === "windows") {
+      checkRobloxInstallation();
+      invoke("apply_skybox", { presetName: "Competitive_Pro" }).catch(() => {});
+      invoke("apply_pro_gear", { gear: { crosshair: "green_dot", sound: "classic_oof", font: "old_roblox" } }).catch(() => {});
+    } else {
+      // Android mode: query native bridge for overlay permission
+      if (typeof window !== "undefined" && (window as any).ClutchAndroid?.hasOverlayPermission) {
+        try {
+          const hasPerm = (window as any).ClutchAndroid.hasOverlayPermission();
+          setAndroidConfig((prev) => ({ ...prev, hasPermission: hasPerm }));
+        } catch {}
+      }
+    }
+  }, [platformMode]);
 
   const checkRobloxInstallation = async () => {
     setDetection((prev) => ({ ...prev, status: "detecting" }));
@@ -131,7 +150,7 @@ export default function App() {
 
   const handleGearChange = async (newGear: ProGearSelection) => {
     setGear(newGear);
-    if (activeMode === "Competitive_Pro") {
+    if (platformMode === "windows" && activeMode === "Competitive_Pro") {
       try {
         await invoke("apply_pro_gear", { gear: newGear });
       } catch (err: any) {
@@ -213,12 +232,18 @@ export default function App() {
     if (withOverlay) {
       if (typeof window !== "undefined" && (window as any).ClutchAndroid?.startOverlay) {
         try {
-          (window as any).ClutchAndroid.startOverlay(
+          const started = (window as any).ClutchAndroid.startOverlay(
             gear.crosshair,
             androidConfig.crosshairScale,
             androidConfig.crosshairOpacity,
             androidConfig.highRefreshEnabled
           );
+          if (!started) {
+            // Permission not granted yet! Native code has opened the system overlay screen.
+            setAndroidConfig((prev) => ({ ...prev, hasPermission: false }));
+            setLaunchStatus("idle");
+            return;
+          }
         } catch (e) {
           console.warn("Native startOverlay notice:", e);
         }
@@ -229,10 +254,10 @@ export default function App() {
           gear: { crosshair: gear.crosshair, sound: gear.sound, font: gear.font },
         }).catch(() => {});
       }
-      setAndroidConfig((prev) => ({ ...prev, isActive: true }));
+      setAndroidConfig((prev) => ({ ...prev, isActive: true, hasPermission: true }));
     }
 
-    // 2. Launch Roblox using Native Android Bridge (com.roblox.client Intent)
+    // 2. Launch Roblox using Native Android Bridge (com.roblox.client Intent on UI thread)
     if (typeof window !== "undefined" && (window as any).ClutchAndroid?.launchRoblox) {
       try {
         const launched = (window as any).ClutchAndroid.launchRoblox();
@@ -258,15 +283,10 @@ export default function App() {
 
     // 4. Intent & deep link fallback for mobile browser / PWA
     try {
-      const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
-      if (isAndroid) {
+      window.location.href = "roblox://";
+      setTimeout(() => {
         window.location.href = "intent://#Intent;scheme=roblox;package=com.roblox.client;end";
-        setTimeout(() => {
-          window.location.href = "roblox://";
-        }, 300);
-      } else {
-        window.location.href = "roblox://";
-      }
+      }, 300);
     } catch (e) {
       console.warn("Deep link fallback:", e);
       window.location.href = "roblox://";
@@ -326,7 +346,7 @@ export default function App() {
     await launchRobloxMobileUnified(true);
   };
 
-  const handleRequestOverlayPermission = async () => {
+  const handleRequestOverlayPermission = () => {
     if (typeof window !== "undefined" && (window as any).ClutchAndroid?.requestOverlayPermission) {
       (window as any).ClutchAndroid.requestOverlayPermission();
       setTimeout(() => {
@@ -341,13 +361,13 @@ export default function App() {
     const isTauriApp = typeof window !== "undefined" && Boolean((window as any).__TAURI_INTERNALS__);
     if (isTauriApp) {
       try {
-        await invoke("request_overlay_permission");
+        invoke("request_overlay_permission");
         setAndroidConfig((prev) => ({ ...prev, hasPermission: true }));
       } catch (err: any) {
         console.warn("Could not request overlay permission:", err);
       }
     } else {
-      alert("Floating overlay permissions are managed by the standalone Android APK. Tap 'Download APK (.apk)' above to install the full native app!");
+      alert("Floating overlay permissions are managed by the standalone Android APK. Tap 'Download APK' above to install the full native app!");
     }
   };
 
@@ -357,11 +377,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-surface-950 text-white flex flex-col justify-between p-6 max-w-4xl mx-auto font-body selection:bg-brand-500 selection:text-white">
-      {/* Top Header with Platform Mode Switcher */}
+      {/* Top Header with Platform Mode Switcher & Mobile Ready Status */}
       <Header
         detection={detection}
         platformMode={platformMode}
         onTogglePlatform={setPlatformMode}
+        androidHasPermission={androidConfig.hasPermission}
+        onRequestOverlayPermission={handleRequestOverlayPermission}
       />
 
       {/* Main Content Area */}
@@ -387,62 +409,69 @@ export default function App() {
           </div>
         )}
 
-        {/* Step 1 Label */}
-        <div className="mb-3 text-xs font-bold text-neutral-400 uppercase tracking-wider font-heading flex items-center justify-between">
-          <span>1. Choose Your Game Mode</span>
-          <span className="text-[11px] text-neutral-500 font-normal lowercase">
-            click "Game Details & Boosts" on any card to view all boosts
-          </span>
-        </div>
-
-        {/* 2-Card Layout: Competitive Gaming Pro Bigger on Left */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
-          {competitivePreset && (
-            <div className="md:col-span-7 lg:col-span-8 flex">
-              <GameModeCard
-                preset={competitivePreset}
-                isSelected={activeMode === competitivePreset.id}
-                onSelect={() => handleSelectMode(competitivePreset)}
-                onOpenAllowedGames={() => setModalPreset(competitivePreset)}
-                isFeatured={true}
-              />
+        {/* Windows PC Mode Layout */}
+        {platformMode === "windows" && (
+          <>
+            {/* Step 1 Label */}
+            <div className="mb-3 text-xs font-bold text-neutral-400 uppercase tracking-wider font-heading flex items-center justify-between">
+              <span>1. Choose Your Game Mode</span>
+              <span className="text-[11px] text-neutral-500 font-normal lowercase">
+                click "Game Details & Boosts" on any card to view all boosts
+              </span>
             </div>
-          )}
 
-          {defaultPreset && (
-            <div className="md:col-span-5 lg:col-span-4 flex">
-              <GameModeCard
-                preset={defaultPreset}
-                isSelected={activeMode === defaultPreset.id}
-                onSelect={() => handleSelectMode(defaultPreset)}
-                onOpenAllowedGames={() => setModalPreset(defaultPreset)}
-                isFeatured={false}
-              />
+            {/* 2-Card Layout: Competitive Gaming Pro Bigger on Left */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+              {competitivePreset && (
+                <div className="md:col-span-7 lg:col-span-8 flex">
+                  <GameModeCard
+                    preset={competitivePreset}
+                    isSelected={activeMode === competitivePreset.id}
+                    onSelect={() => handleSelectMode(competitivePreset)}
+                    onOpenAllowedGames={() => setModalPreset(competitivePreset)}
+                    isFeatured={true}
+                  />
+                </div>
+              )}
+
+              {defaultPreset && (
+                <div className="md:col-span-5 lg:col-span-4 flex">
+                  <GameModeCard
+                    preset={defaultPreset}
+                    isSelected={activeMode === defaultPreset.id}
+                    onSelect={() => handleSelectMode(defaultPreset)}
+                    onOpenAllowedGames={() => setModalPreset(defaultPreset)}
+                    isFeatured={false}
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Step 2: Pick Your Pro Gear (Optional) */}
-        <ProGearRack
-          gear={gear}
-          onChange={handleGearChange}
-          isUnlocked={activeMode === "Competitive_Pro"}
-        />
+            {/* Step 2: Pick Your Pro Gear (Optional) */}
+            <ProGearRack
+              gear={gear}
+              onChange={handleGearChange}
+              isUnlocked={activeMode === "Competitive_Pro"}
+            />
+          </>
+        )}
 
-        {/* Android Pro Overlay & Gaming Assist Controls */}
+        {/* Android Mode Dedicated Esports Layout */}
         {platformMode === "android" && (
           <AndroidOverlayControls
             config={androidConfig}
             onChange={setAndroidConfig}
             selectedGear={gear}
+            onGearChange={handleGearChange}
             launchStatus={launchStatus}
             onStartAndLaunch={handleStartAndLaunchAndroid}
+            onLaunchWithoutOverlay={() => launchRobloxMobileUnified(false)}
             onRequestPermission={handleRequestOverlayPermission}
           />
         )}
       </main>
 
-      {/* Clean Bottom Footer (Windows PC Mode) */}
+      {/* Clean Bottom Footer (Windows PC Mode Only) */}
       {platformMode === "windows" && (
         <Footer
           selectedPresetName={selectedPreset.name}
