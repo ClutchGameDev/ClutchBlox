@@ -5,6 +5,7 @@ import { AlertCircle } from "lucide-react";
 import { GameModePreset, RobloxDetection, LaunchStatus, EsportsHudState, ProGearSelection, AndroidOverlayConfig } from "./types";
 import { PRESETS } from "./constants/presets";
 import { Header } from "./components/Header";
+import { LaunchScreen } from "./components/LaunchScreen";
 import { GameModeCard } from "./components/GameModeCard";
 import { ProGearRack } from "./components/ProGearRack";
 import { AndroidOverlayControls } from "./components/AndroidOverlayControls";
@@ -13,6 +14,8 @@ import { RestartRobloxModal } from "./components/RestartRobloxModal";
 import { Footer } from "./components/Footer";
 
 export default function App() {
+  const [currentScreen, setCurrentScreen] = useState<"launch" | "main">("launch");
+
   const [platformMode, setPlatformMode] = useState<"windows" | "android">(() => {
     if (typeof window !== "undefined" && (window as any).ClutchAndroid) {
       return "android";
@@ -371,6 +374,11 @@ export default function App() {
     }
   };
 
+  // If on Launch Screen, render the pre-flight screen
+  if (currentScreen === "launch") {
+    return <LaunchScreen onLaunch={() => setCurrentScreen("main")} />;
+  }
+
   const selectedPreset = PRESETS.find((p) => p.id === activeMode) || PRESETS[0];
   const competitivePreset = PRESETS.find((p) => p.id === "Competitive_Pro") || PRESETS[0];
   const defaultPreset = PRESETS.find((p) => p.id === "Default") || PRESETS[1];
@@ -384,6 +392,7 @@ export default function App() {
         onTogglePlatform={setPlatformMode}
         androidHasPermission={androidConfig.hasPermission}
         onRequestOverlayPermission={handleRequestOverlayPermission}
+        onBackToLaunch={() => setCurrentScreen("launch")}
       />
 
       {/* Main Content Area */}
@@ -411,19 +420,11 @@ export default function App() {
 
         {/* Windows PC Mode Layout */}
         {platformMode === "windows" && (
-          <>
-            {/* Step 1 Label */}
-            <div className="mb-3 text-xs font-bold text-neutral-400 uppercase tracking-wider font-heading flex items-center justify-between">
-              <span>1. Choose Your Game Mode</span>
-              <span className="text-[11px] text-neutral-500 font-normal lowercase">
-                click "Game Details & Boosts" on any card to view all boosts
-              </span>
-            </div>
-
-            {/* 2-Card Layout: Competitive Gaming Pro Bigger on Left */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+          <div className="space-y-4">
+            {/* 2-Card Layout: Competitive Gaming Pro & Stock Roblox */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
               {competitivePreset && (
-                <div className="md:col-span-7 lg:col-span-8 flex">
+                <div className="flex">
                   <GameModeCard
                     preset={competitivePreset}
                     isSelected={activeMode === competitivePreset.id}
@@ -435,7 +436,7 @@ export default function App() {
               )}
 
               {defaultPreset && (
-                <div className="md:col-span-5 lg:col-span-4 flex">
+                <div className="flex">
                   <GameModeCard
                     preset={defaultPreset}
                     isSelected={activeMode === defaultPreset.id}
@@ -447,13 +448,13 @@ export default function App() {
               )}
             </div>
 
-            {/* Step 2: Pick Your Pro Gear (Optional) */}
+            {/* Pro Gear */}
             <ProGearRack
               gear={gear}
               onChange={handleGearChange}
               isUnlocked={activeMode === "Competitive_Pro"}
             />
-          </>
+          </div>
         )}
 
         {/* Android Mode Dedicated Esports Layout */}

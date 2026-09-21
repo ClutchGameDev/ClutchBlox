@@ -1,5 +1,5 @@
 import React from "react";
-import { Crosshair } from "lucide-react";
+import { Crosshair, ArrowLeft } from "lucide-react";
 import { RobloxDetection } from "../types";
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
   onTogglePlatform?: (mode: "windows" | "android") => void;
   androidHasPermission?: boolean;
   onRequestOverlayPermission?: () => void;
+  onBackToLaunch?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,30 +17,31 @@ export const Header: React.FC<HeaderProps> = ({
   onTogglePlatform,
   androidHasPermission = true,
   onRequestOverlayPermission,
+  onBackToLaunch,
 }) => {
   return (
-    <header className="flex items-center justify-between border-b border-surface-800/80 pb-4">
+    <header className="flex items-center justify-between border-b border-surface-800/80 pb-3">
+      {/* Left Side: Back button & Brand */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white font-bold text-xl shadow-[0_4px_12px_rgba(255,75,51,0.35),inset_0_1px_0_rgba(255,255,255,0.25)] border-b-2 border-brand-700 font-heading">
-          <Crosshair className="w-6 h-6 stroke-[2.5]" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-white tracking-tight font-heading">
-              ClutchBlox
-            </h1>
-            <span className="text-[10px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/30 font-heading">
-              v1.4.0
-            </span>
-            <span className="text-[9px] font-bold text-neutral-400 bg-surface-850 px-1.5 py-0.5 rounded uppercase tracking-wider font-heading">
-              {platformMode === "android" ? "Android Esports" : "Competitive Client"}
-            </span>
+        {onBackToLaunch && (
+          <button
+            type="button"
+            onClick={onBackToLaunch}
+            className="p-2 rounded-xl bg-surface-900 hover:bg-surface-800 border border-surface-800 hover:border-surface-700 text-neutral-400 hover:text-white transition-all cursor-pointer flex items-center gap-1 text-xs font-bold font-heading shadow-sm"
+            title="Return to Launcher"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Launcher</span>
+          </button>
+        )}
+
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center text-white font-bold text-lg shadow-[0_4px_12px_rgba(255,75,51,0.35)] border-b-2 border-brand-700">
+            <Crosshair className="w-5 h-5 stroke-[2.5]" />
           </div>
-          <p className="text-xs text-neutral-400 mt-0.5 font-body">
-            {platformMode === "android"
-              ? "Hardware Crosshair Overlay & 120Hz Touch Boost for Roblox Mobile."
-              : "Pick a mode below, then click Play Roblox."}
-          </p>
+          <h1 className="text-xl font-bold text-white tracking-tight font-heading">
+            ClutchBlox
+          </h1>
         </div>
       </div>
 

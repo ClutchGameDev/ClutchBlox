@@ -28,9 +28,6 @@ export const Footer: React.FC<FooterProps> = ({
   return (
     <footer className="pt-4 border-t border-surface-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div>
-        <div className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider font-heading mb-0.5">
-          3. Start Playing
-        </div>
         <div className="text-xs text-neutral-300 font-body">
           Selected Mode: <span className="text-sm font-bold text-brand-500 font-heading">{selectedPresetName}</span>
         </div>
