@@ -7,6 +7,8 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::{Duration, Instant, SystemTime};
 use tauri::Emitter;
 
+mod vantage;
+
 #[cfg(target_os = "windows")]
 mod win32_latency {
     use std::os::raw::c_uint;
@@ -272,7 +274,7 @@ fn get_all_client_settings_dirs() -> Vec<PathBuf> {
     dirs
 }
 
-fn cleanup_all_client_settings() {
+pub(crate) fn cleanup_all_client_settings() {
     for dir in get_all_client_settings_dirs() {
         let file = dir.join("ClientAppSettings.json");
         if file.exists() {
@@ -308,7 +310,7 @@ const VISUAL_FLAGS_JSON: &str = r#"{
   "DFIntTextureQualityOverride": 3
 }"#;
 
-fn write_fastflags(config_content: &str) -> Result<(), String> {
+pub(crate) fn write_fastflags(config_content: &str) -> Result<(), String> {
     for dir in get_all_client_settings_dirs() {
         if !dir.exists() {
             let _ = fs::create_dir_all(&dir);
@@ -847,7 +849,10 @@ pub fn run() {
             request_overlay_permission,
             start_android_overlay,
             stop_android_overlay,
-            launch_roblox_mobile
+            launch_roblox_mobile,
+            vantage::apply_vantage_profile,
+            vantage::restore_vantage_defaults,
+            vantage::export_sonar_eq_profile
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

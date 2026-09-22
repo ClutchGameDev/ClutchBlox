@@ -49,4 +49,15 @@ export interface AndroidOverlayConfig {
   radarVisible: boolean;
 }
 
+export interface VantageConfig {
+  trueSightEnabled: boolean;
+  fov: number;
+  dayDurationSeconds: number;
+  nightDurationSeconds: number;
+  currentNight: number;
+  duskWarningAudio: boolean;
+  quickKeySlotMap: Record<string, number>;
+}
+
+
 

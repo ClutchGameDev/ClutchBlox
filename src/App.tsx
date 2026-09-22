@@ -11,10 +11,11 @@ import { ProGearRack } from "./components/ProGearRack";
 import { AndroidOverlayControls } from "./components/AndroidOverlayControls";
 import { AllowedGamesModal } from "./components/AllowedGamesModal";
 import { RestartRobloxModal } from "./components/RestartRobloxModal";
+import { VantageScreen } from "./components/VantageScreen";
 import { Footer } from "./components/Footer";
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<"launch" | "main">("launch");
+  const [currentScreen, setCurrentScreen] = useState<"launch" | "clutchblox" | "99vantage">("launch");
 
   const [platformMode, setPlatformMode] = useState<"windows" | "android">(() => {
     if (typeof window !== "undefined" && (window as any).ClutchAndroid) {
@@ -376,7 +377,21 @@ export default function App() {
 
   // If on Launch Screen, render the pre-flight screen
   if (currentScreen === "launch") {
-    return <LaunchScreen onLaunch={() => setCurrentScreen("main")} />;
+    return (
+      <LaunchScreen
+        onLaunchClutchBlox={() => setCurrentScreen("clutchblox")}
+        onLaunchVantage={() => setCurrentScreen("99vantage")}
+      />
+    );
+  }
+
+  if (currentScreen === "99vantage") {
+    return (
+      <VantageScreen
+        onBackToLaunch={() => setCurrentScreen("launch")}
+        onPlayRoblox={handleLaunchRoblox}
+      />
+    );
   }
 
   const selectedPreset = PRESETS.find((p) => p.id === activeMode) || PRESETS[0];
